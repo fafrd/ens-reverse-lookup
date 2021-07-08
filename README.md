@@ -4,3 +4,15 @@
 
 This repo contains a [Cloudflare Worker](https://developers.cloudflare.com/workers/) script that will perform the reverse-lookup: that is, given an ethereum address, return the ENS domain.
 
+
+## developing
+
+Install cloudflare's 'wrangler' cli tool: https://developers.cloudflare.com/workers/cli-wrangler/install-update
+
+authenticate with cloudflare: `wrangler login`
+
+open `wrangler.toml` and set the account_id value based on the output of the previous command
+
+develop interactively with `wrangler dev`
+
+publish the application: `wrangler publish`
