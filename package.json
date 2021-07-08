@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "name": "ens",
+  "version": "1.0.0",
+  "description": "A template for kick starting a Cloudflare Workers project",
+  "main": "./dist/worker.js",
+  "scripts": {
+    "build": "npm install && webpack",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write '**/*.{js,css,json,md}'"
+  },
+  "author": "Kian <kian@kian>",
+  "license": "GPLv3",
+  "devDependencies": {
+    "prettier": "^1.19.1",
+    "webpack": "^5.15.0",
+    "webpack-cli": "^4.3.1"
+  },
+  "dependencies": {
+    "ethers": "^5.4.1"
+  }
+}

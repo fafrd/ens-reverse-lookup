@@ -1,0 +1,11 @@
+name = "ens"
+type = "javascript"
+zone_id = ""
+account_id = "f3d5881a20b8e70479f35e8200b916bf"
+route = ""
+workers_dev = true
+
+[build]
+command = "npm install && npm run build"
+[build.upload]
+format = "service-worker"
