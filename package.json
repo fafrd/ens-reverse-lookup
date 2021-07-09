@@ -1,7 +1,7 @@
 {
-  "name": "worker-typescript-template",
+  "name": "ens-reverse-lookup",
   "version": "1.0.0",
-  "description": "Cloudflare worker TypeScript template",
+  "description": "ENS reverse lookup as a service",
   "main": "dist/worker.js",
   "scripts": {
     "build": "webpack",
