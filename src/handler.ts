@@ -1,3 +1,6 @@
+import { ethers } from "ethers";
+import { NODE_ADDRESS } from "./config";
+
 addEventListener("fetch", (event) => {
   event.respondWith(
     handleRequest(event.request).catch(
@@ -5,37 +8,6 @@ addEventListener("fetch", (event) => {
     )
   );
 });
-
-async function queryGraph(endpoint: string, query: string): Promise<any> {
-  const resp = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({query})
-   });
-
-  return resp.json();
-}
-
-async function fetchEns(address: string): Promise<Array<string>> {
-  console.debug("fetching ens for account " + JSON.stringify(address));
-
-  const endpoint = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
-  const query = `{
-    domains(where:{owner:"${address.toLowerCase()}"}) {
-      name
-    }
-  }`;
-
-  console.debug("query: \n" + query);
-
-  const res = await queryGraph(endpoint, query);
-  console.debug(JSON.stringify(res));
-
-  return res.data.domains.map((d: any) => d.name);
-}
 
 export async function handleRequest(request: Request): Promise<Response> {
   const { pathname } = new URL(request.url);
@@ -52,17 +24,33 @@ export async function handleRequest(request: Request): Promise<Response> {
       const address = pathname.substring(start + 1, start + 43).toLowerCase();
       console.log("address: " + address);
 
-      // First, fetch all domains owned by this address.
-      // Second, fetch the reverse record domain for this address.
-      // Third, if reverse record is set, validate addr owns this domain.
+      let reverseRecord: (string | null) = null;
+      let res: string = "";
+      try {
+        res = await queryReverseEns(address);
+        const res_parsed = JSON.parse(res).result;
+        let rr = ethers.utils.defaultAbiCoder.decode([ethers.utils.ParamType.from("string[]")], res_parsed);
+        console.log("reverseRecord: " + JSON.stringify(rr));
+        reverseRecord = rr[0][0];
+      } catch (e) {
+        throw "Error contacting ethereum node. \nCause: '" + e + "'. \nResponse: " + res;
+      }
 
       let allDomains = await fetchEns(address);
-      console.log(allDomains);
+      console.log("all domains owned: " + JSON.stringify(allDomains));
 
-      // TODO
+      if (reverseRecord == "") {
+        reverseRecord = null;
+      }
+
+      // if reverse record is set, validate addr owns this domain.
+      if (reverseRecord != null && !allDomains.includes(reverseRecord)) {
+        console.warn("Failed to validate! Reverse record set to " + reverseRecord + ", but user does not own this name.");
+        reverseRecord = null;
+      }
 
       let resp = {
-        "reverseRecord": null,
+        "reverseRecord": reverseRecord,
         "domains": allDomains
       };
 
@@ -72,11 +60,11 @@ export async function handleRequest(request: Request): Promise<Response> {
     }
   } catch (e) {
     return new Response(
-      "Error: " + e + "\n\nUsage: \n/ens/0x5295b474F3A0bB39418456c96D6FCf13901A4aA1",
+      "Error: " + e,
       {
         status: 400,
         headers: {
-          "content-type": "text/html;charset=UTF-8",
+          "content-type": "text/raw;charset=UTF-8",
         }
     });
   }
@@ -87,4 +75,48 @@ export async function handleRequest(request: Request): Promise<Response> {
       "content-type": "text/html;charset=UTF-8",
     }
   });
+}
+
+
+async function queryReverseEns(address: string): Promise<any> {
+  const data = "0xcbf8b66c00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000" + address.substring(2);
+
+  const resp = await fetch(NODE_ADDRESS, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({"jsonrpc":"2.0", "method":"eth_call", "params":[{"to": "0x3671aE578E63FdF66ad4F3E12CC0c0d71Ac7510C", "data": data}], "id":1})
+  });
+
+  return resp.text();
+}
+
+async function queryGraph(endpoint: string, query: string): Promise<any> {
+  const resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({query})
+   });
+
+  return resp.json();
+}
+
+async function fetchEns(address: string): Promise<Array<string>> {
+  const endpoint = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
+  const query = `{
+    domains(where:{owner:"${address.toLowerCase()}"}) {
+      name
+    }
+  }`;
+
+  //console.debug("query: \n" + query);
+
+  const res = await queryGraph(endpoint, query);
+  //console.debug(JSON.stringify(res));
+
+  return res.data.domains.map((d: any) => d.name);
 }

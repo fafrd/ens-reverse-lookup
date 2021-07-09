@@ -7,12 +7,13 @@ This repo contains a [Cloudflare Worker](https://developers.cloudflare.com/worke
 
 ## developing
 
-Install cloudflare's 'wrangler' cli tool: https://developers.cloudflare.com/workers/cli-wrangler/install-update
+- Install cloudflare's 'wrangler' cli tool: https://developers.cloudflare.com/workers/cli-wrangler/install-update
+- authenticate with cloudflare: `wrangler login`
+- open `wrangler.toml` and set the account_id value based on the output of the previous command
+- open `src/config.ts`, and link to your node address.
+- develop interactively with `wrangler dev`
+- publish the application: `wrangler publish`
 
-authenticate with cloudflare: `wrangler login`
+## Setting your ethereum node
 
-open `wrangler.toml` and set the account_id value based on the output of the previous command
-
-develop interactively with `wrangler dev`
-
-publish the application: `wrangler publish`
+Don't forget to set your ethereum node in `src/config.ts`! **Your node must be served from port 80 or 443**- this is a limitation with Cloudflare, they don't seem to support reaching out to nonstandard ports.
