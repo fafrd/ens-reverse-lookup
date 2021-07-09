@@ -54,8 +54,13 @@ export async function handleRequest(request: Request): Promise<Response> {
         "domains": allDomains
       };
 
-      return new Response(JSON.stringify(resp), {
-        headers: { "Content-Type": "application/json" },
+      return new Response(
+        JSON.stringify(resp),
+        {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*"
+          },
       });
     }
   } catch (e) {
@@ -64,7 +69,8 @@ export async function handleRequest(request: Request): Promise<Response> {
       {
         status: 400,
         headers: {
-          "content-type": "text/raw;charset=UTF-8",
+          "Content-Type": "text/raw;charset=UTF-8",
+          "Access-Control-Allow-Origin": "*"
         }
     });
   }
@@ -72,14 +78,16 @@ export async function handleRequest(request: Request): Promise<Response> {
   return new Response(
     "Usage: /ens/0x5295b474F3A0bB39418456c96D6FCf13901A4aA1", {
     headers: {
-      "content-type": "text/html;charset=UTF-8",
+      "Content-Type": "text/html;charset=UTF-8",
+      "Access-Control-Allow-Origin": "*"
     }
   });
 }
 
 
 async function queryReverseEns(address: string): Promise<any> {
-  const data = "0xcbf8b66c00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000" + address.substring(2);
+  const data = "0xcbf8b66c00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000"
+    + address.substring(2);
 
   const resp = await fetch(NODE_ADDRESS, {
     method: 'POST',
