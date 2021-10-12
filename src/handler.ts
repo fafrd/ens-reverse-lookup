@@ -1,6 +1,10 @@
 import { ethers } from "ethers";
 import { NODE_ADDRESS } from "./config";
 
+const abi = [{"inputs":[{"internalType":"contract ENS","name":"_ens","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address[]","name":"addresses","type":"address[]"}],"name":"getNames","outputs":[{"internalType":"string[]","name":"r","type":"string[]"}],"stateMutability":"view","type":"function"}];
+const iface = new ethers.utils.Interface(abi);
+
+
 addEventListener("fetch", (event) => {
   event.respondWith(
     handleRequest(event.request).catch(
@@ -28,11 +32,14 @@ export async function handleRequest(request: Request): Promise<Response> {
       let res: string = "";
       try {
         res = await queryReverseEns(address);
+        reverseRecord = await res;
         const res_parsed = JSON.parse(res).result;
+        console.log(res)
         let rr = ethers.utils.defaultAbiCoder.decode([ethers.utils.ParamType.from("string[]")], res_parsed);
         console.log("reverseRecord: " + JSON.stringify(rr));
         reverseRecord = rr[0][0];
       } catch (e) {
+        console.error(e);
         throw "Error contacting ethereum node. \nCause: '" + e + "'. \nResponse: " + res;
       }
 
@@ -84,17 +91,21 @@ export async function handleRequest(request: Request): Promise<Response> {
   });
 }
 
-
 async function queryReverseEns(address: string): Promise<any> {
-  const data = "0xcbf8b66c00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000"
-    + address.substring(2);
+  console.log("calling node...")
+  const data = iface.encodeFunctionData("getNames", [[ address.substring(2) ]]);
 
   const resp = await fetch(NODE_ADDRESS, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({"jsonrpc":"2.0", "method":"eth_call", "params":[{"to": "0x3671aE578E63FdF66ad4F3E12CC0c0d71Ac7510C", "data": data}], "id":1})
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: "1",
+      method: "eth_call",
+      params: [{"to": "0x3671aE578E63FdF66ad4F3E12CC0c0d71Ac7510C", "data": data}, "latest"],
+    })
   });
 
   return resp.text();
