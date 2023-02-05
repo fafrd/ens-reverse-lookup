@@ -4,7 +4,7 @@
 
 This repo contains a [Cloudflare Worker](https://developers.cloudflare.com/workers/) script that will perform the reverse-lookup: that is, given an ethereum address, return the ENS domain.
 
-*This API is publicly accessible at https://ens.fafrd.workers.dev/*.
+This API is publicly accessible at https://ens.fafrd.workers.dev/; however due to Cloudflare free tier limits you may get an HTTP 429, so you should deploy this yourself using the instructions below.
 
 ## examples
 
